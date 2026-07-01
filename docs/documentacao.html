@@ -51,7 +51,7 @@
 <p><strong>Centro Universitário UNIFASIPE — Análise e Desenvolvimento de Sistemas (3º semestre)</strong>
 <strong>Disciplina:</strong> Banco de Dados — Atividade Avaliativa N3
 <strong>Aluno:</strong> Walisson Vinicius
-<strong>Professor(a):</strong> _______________
+<strong>Professor:</strong> Willian
 <strong>Sinop/MT — 2026</strong></p>
 <hr>
 <h2>Sumário</h2>
@@ -584,19 +584,79 @@
 <p>Os triggers 1 e 2 formam uma <strong>cadeia</strong>: aceitar uma proposta cria o contrato, que por sua vez gera a primeira fatura — tudo em uma única ação do usuário.</p>
 </blockquote>
 <h2>9. Relatórios SQL de gerenciamento</h2>
-<p>São cinco relatórios, cada um voltado a uma decisão de gestão. Juntos, eles aplicam todos os comandos exigidos: <code>WHERE</code>, <code>AND</code>, <code>OR</code>, <code>JOIN</code>, <code>UNION ALL</code>, <code>COUNT</code>, <code>SUM</code> (além dos <code>TRIGGERS</code> acima).</p>
+<p>São cinco relatórios, cada um voltado a uma decisão de gestão. Juntos, eles aplicam todos os comandos exigidos: <code>WHERE</code>, <code>AND</code>, <code>OR</code>, <code>JOIN</code>, <code>UNION ALL</code>, <code>COUNT</code>, <code>SUM</code> (além dos <code>TRIGGERS</code> da seção 8). A seguir, cada relatório com sua explicação e o SQL completo.</p>
 <h3>Relatório 1 — Funil de prospecção por segmento</h3>
-<p><em>Comandos: JOIN, WHERE, AND, COUNT.</em> Mostra, por nicho, quantos leads existem, quantos estão quentes e o score médio de oportunidade. Ajuda a decidir onde concentrar a prospecção. (<code>db/reports/01_funil_prospeccao.sql</code>)</p>
+<p><em>Comandos: JOIN, WHERE, AND, COUNT, AVG.</em> Mostra, por nicho, quantos leads existem, quantos estão quentes e o score médio de oportunidade — ajuda a decidir onde concentrar a prospecção. (<code>db/reports/01_funil_prospeccao.sql</code>)</p>
+<pre><code class="language-sql">SELECT s.nome AS segmento,
+       COUNT(*) AS total_leads,
+       COUNT(CASE WHEN l.temperatura IN (&#39;QUENTE&#39;, &#39;SUPER_QUENTE&#39;) THEN 1 END) AS leads_quentes,
+       ROUND(AVG(l.score_feiura), 1) AS score_medio
+FROM leads l
+JOIN segmentos s ON s.id = l.segmento_id
+WHERE l.ativo = 1 AND l.franquia = 0
+GROUP BY s.id
+ORDER BY total_leads DESC, score_medio DESC;
+</code></pre>
 <h3>Relatório 2 — MRR (receita recorrente mensal) por plano</h3>
-<p><em>Comandos: JOIN, WHERE, SUM, COUNT.</em> Soma o valor mensal dos contratos ativos por plano e projeta a receita anual (ARR). É o principal indicador de saúde do negócio. (<code>db/reports/02_mrr_por_plano.sql</code>)</p>
+<p><em>Comandos: JOIN, WHERE, SUM, COUNT.</em> Soma o valor mensal dos contratos ativos por plano e projeta a receita anual (ARR) — principal indicador de saúde do negócio. (<code>db/reports/02_mrr_por_plano.sql</code>)</p>
+<pre><code class="language-sql">SELECT p.nome AS plano,
+       COUNT(c.id) AS contratos_ativos,
+       SUM(c.valor_mensal) AS mrr,
+       SUM(c.valor_mensal) * 12 AS arr_projetado
+FROM contratos c
+JOIN planos p ON p.id = c.plano_id
+WHERE c.status = &#39;ATIVO&#39;
+GROUP BY p.id
+ORDER BY mrr DESC;
+</code></pre>
 <h3>Relatório 3 — Inadimplência</h3>
-<p><em>Comandos: JOIN, WHERE, AND, OR, COUNT, SUM.</em> Lista os clientes com faturas vencidas em aberto, com a quantidade e o total devido. Aciona a régua de cobrança. (<code>db/reports/03_inadimplencia.sql</code>)</p>
+<p><em>Comandos: JOIN, WHERE, AND, OR, COUNT, SUM.</em> Lista os clientes com faturas vencidas em aberto, com a quantidade, o total devido e o vencimento mais antigo — aciona a régua de cobrança. (<code>db/reports/03_inadimplencia.sql</code>)</p>
+<pre><code class="language-sql">SELECT cl.nome AS cliente,
+       COUNT(f.id) AS faturas_vencidas,
+       SUM(f.valor) AS total_em_aberto,
+       MIN(f.vencimento) AS vencimento_mais_antigo
+FROM faturas f
+JOIN contratos c ON c.id = f.contrato_id
+JOIN clientes cl ON cl.id = c.cliente_id
+WHERE f.status = &#39;ABERTA&#39;
+  AND (f.vencimento &lt; date(&#39;now&#39;) OR f.competencia &lt; strftime(&#39;%Y-%m&#39;, &#39;now&#39;))
+GROUP BY cl.id
+HAVING total_em_aberto &gt; 0
+ORDER BY total_em_aberto DESC;
+</code></pre>
 <h3>Relatório 4 — Extrato de caixa (realizado + previsto)</h3>
-<p><em>Comandos: UNION ALL, JOIN, WHERE.</em> Une, em um único extrato ordenado por data, o que já foi recebido (pagamentos) com o que ainda está previsto (faturas em aberto). É o caso clássico de <code>UNION ALL</code>, pois combina duas origens com a mesma estrutura. (<code>db/reports/04_extrato_caixa.sql</code>)</p>
+<p><em>Comandos: UNION ALL, JOIN, WHERE.</em> Une, em um único extrato ordenado por data, o que já foi recebido (pagamentos) com o que ainda está previsto (faturas em aberto) — caso clássico de <code>UNION ALL</code>, combinando duas origens de mesma estrutura. (<code>db/reports/04_extrato_caixa.sql</code>)</p>
+<pre><code class="language-sql">SELECT pg.pago_em AS data, &#39;REALIZADO&#39; AS tipo, cl.nome AS cliente, pg.valor AS valor
+FROM pagamentos pg
+JOIN faturas f   ON f.id = pg.fatura_id
+JOIN contratos c ON c.id = f.contrato_id
+JOIN clientes cl ON cl.id = c.cliente_id
+UNION ALL
+SELECT f.vencimento AS data, &#39;PREVISTO&#39; AS tipo, cl.nome AS cliente, f.valor AS valor
+FROM faturas f
+JOIN contratos c ON c.id = f.contrato_id
+JOIN clientes cl ON cl.id = c.cliente_id
+WHERE f.status = &#39;ABERTA&#39;
+ORDER BY data, tipo;
+</code></pre>
 <h3>Relatório 5 — Ranking de clientes por LTV</h3>
 <p><em>Comandos: JOIN (INNER + LEFT), WHERE, AND, COUNT, SUM.</em> Soma tudo o que cada cliente ativo já pagou (seu <em>lifetime value</em>) e mostra o número de contratos. O <code>LEFT JOIN</code> garante que clientes ainda sem pagamento também apareçam. (<code>db/reports/05_ltv_clientes.sql</code>)</p>
+<pre><code class="language-sql">SELECT cl.nome AS cliente,
+       s.nome AS segmento,
+       COUNT(DISTINCT c.id) AS contratos,
+       COALESCE(SUM(pg.valor), 0) AS ltv
+FROM clientes cl
+JOIN segmentos s   ON s.id = cl.segmento_id
+LEFT JOIN contratos c   ON c.cliente_id = cl.id
+LEFT JOIN faturas f     ON f.contrato_id = c.id
+LEFT JOIN pagamentos pg ON pg.fatura_id = f.id
+WHERE cl.status = &#39;ATIVO&#39; AND s.ativo = 1
+GROUP BY cl.id
+ORDER BY ltv DESC
+LIMIT 10;
+</code></pre>
 <blockquote>
-<p>O código SQL completo de cada relatório está nos arquivos indicados e também é exibido na tela <strong>Relatórios</strong> do sistema, junto do resultado executado ao vivo.</p>
+<p>O SQL de cada relatório também é exibido na tela <strong>Relatórios</strong> do sistema, junto do resultado executado ao vivo no banco.</p>
 </blockquote>
 <h2>10. Como reproduzir o banco</h2>
 <ol>

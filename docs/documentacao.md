@@ -3,7 +3,7 @@
 **Centro Universitário UNIFASIPE — Análise e Desenvolvimento de Sistemas (3º semestre)**
 **Disciplina:** Banco de Dados — Atividade Avaliativa N3
 **Aluno:** Walisson Vinicius
-**Professor(a):** _______________
+**Professor:** Willian
 **Sinop/MT — 2026**
 
 ---
@@ -256,24 +256,94 @@ Sete triggers automatizam as regras de negócio:
 
 ## 9. Relatórios SQL de gerenciamento
 
-São cinco relatórios, cada um voltado a uma decisão de gestão. Juntos, eles aplicam todos os comandos exigidos: `WHERE`, `AND`, `OR`, `JOIN`, `UNION ALL`, `COUNT`, `SUM` (além dos `TRIGGERS` acima).
+São cinco relatórios, cada um voltado a uma decisão de gestão. Juntos, eles aplicam todos os comandos exigidos: `WHERE`, `AND`, `OR`, `JOIN`, `UNION ALL`, `COUNT`, `SUM` (além dos `TRIGGERS` da seção 8). A seguir, cada relatório com sua explicação e o SQL completo.
 
 ### Relatório 1 — Funil de prospecção por segmento
-*Comandos: JOIN, WHERE, AND, COUNT.* Mostra, por nicho, quantos leads existem, quantos estão quentes e o score médio de oportunidade. Ajuda a decidir onde concentrar a prospecção. (`db/reports/01_funil_prospeccao.sql`)
+*Comandos: JOIN, WHERE, AND, COUNT, AVG.* Mostra, por nicho, quantos leads existem, quantos estão quentes e o score médio de oportunidade — ajuda a decidir onde concentrar a prospecção. (`db/reports/01_funil_prospeccao.sql`)
+
+```sql
+SELECT s.nome AS segmento,
+       COUNT(*) AS total_leads,
+       COUNT(CASE WHEN l.temperatura IN ('QUENTE', 'SUPER_QUENTE') THEN 1 END) AS leads_quentes,
+       ROUND(AVG(l.score_feiura), 1) AS score_medio
+FROM leads l
+JOIN segmentos s ON s.id = l.segmento_id
+WHERE l.ativo = 1 AND l.franquia = 0
+GROUP BY s.id
+ORDER BY total_leads DESC, score_medio DESC;
+```
 
 ### Relatório 2 — MRR (receita recorrente mensal) por plano
-*Comandos: JOIN, WHERE, SUM, COUNT.* Soma o valor mensal dos contratos ativos por plano e projeta a receita anual (ARR). É o principal indicador de saúde do negócio. (`db/reports/02_mrr_por_plano.sql`)
+*Comandos: JOIN, WHERE, SUM, COUNT.* Soma o valor mensal dos contratos ativos por plano e projeta a receita anual (ARR) — principal indicador de saúde do negócio. (`db/reports/02_mrr_por_plano.sql`)
+
+```sql
+SELECT p.nome AS plano,
+       COUNT(c.id) AS contratos_ativos,
+       SUM(c.valor_mensal) AS mrr,
+       SUM(c.valor_mensal) * 12 AS arr_projetado
+FROM contratos c
+JOIN planos p ON p.id = c.plano_id
+WHERE c.status = 'ATIVO'
+GROUP BY p.id
+ORDER BY mrr DESC;
+```
 
 ### Relatório 3 — Inadimplência
-*Comandos: JOIN, WHERE, AND, OR, COUNT, SUM.* Lista os clientes com faturas vencidas em aberto, com a quantidade e o total devido. Aciona a régua de cobrança. (`db/reports/03_inadimplencia.sql`)
+*Comandos: JOIN, WHERE, AND, OR, COUNT, SUM.* Lista os clientes com faturas vencidas em aberto, com a quantidade, o total devido e o vencimento mais antigo — aciona a régua de cobrança. (`db/reports/03_inadimplencia.sql`)
+
+```sql
+SELECT cl.nome AS cliente,
+       COUNT(f.id) AS faturas_vencidas,
+       SUM(f.valor) AS total_em_aberto,
+       MIN(f.vencimento) AS vencimento_mais_antigo
+FROM faturas f
+JOIN contratos c ON c.id = f.contrato_id
+JOIN clientes cl ON cl.id = c.cliente_id
+WHERE f.status = 'ABERTA'
+  AND (f.vencimento < date('now') OR f.competencia < strftime('%Y-%m', 'now'))
+GROUP BY cl.id
+HAVING total_em_aberto > 0
+ORDER BY total_em_aberto DESC;
+```
 
 ### Relatório 4 — Extrato de caixa (realizado + previsto)
-*Comandos: UNION ALL, JOIN, WHERE.* Une, em um único extrato ordenado por data, o que já foi recebido (pagamentos) com o que ainda está previsto (faturas em aberto). É o caso clássico de `UNION ALL`, pois combina duas origens com a mesma estrutura. (`db/reports/04_extrato_caixa.sql`)
+*Comandos: UNION ALL, JOIN, WHERE.* Une, em um único extrato ordenado por data, o que já foi recebido (pagamentos) com o que ainda está previsto (faturas em aberto) — caso clássico de `UNION ALL`, combinando duas origens de mesma estrutura. (`db/reports/04_extrato_caixa.sql`)
+
+```sql
+SELECT pg.pago_em AS data, 'REALIZADO' AS tipo, cl.nome AS cliente, pg.valor AS valor
+FROM pagamentos pg
+JOIN faturas f   ON f.id = pg.fatura_id
+JOIN contratos c ON c.id = f.contrato_id
+JOIN clientes cl ON cl.id = c.cliente_id
+UNION ALL
+SELECT f.vencimento AS data, 'PREVISTO' AS tipo, cl.nome AS cliente, f.valor AS valor
+FROM faturas f
+JOIN contratos c ON c.id = f.contrato_id
+JOIN clientes cl ON cl.id = c.cliente_id
+WHERE f.status = 'ABERTA'
+ORDER BY data, tipo;
+```
 
 ### Relatório 5 — Ranking de clientes por LTV
 *Comandos: JOIN (INNER + LEFT), WHERE, AND, COUNT, SUM.* Soma tudo o que cada cliente ativo já pagou (seu *lifetime value*) e mostra o número de contratos. O `LEFT JOIN` garante que clientes ainda sem pagamento também apareçam. (`db/reports/05_ltv_clientes.sql`)
 
-> O código SQL completo de cada relatório está nos arquivos indicados e também é exibido na tela **Relatórios** do sistema, junto do resultado executado ao vivo.
+```sql
+SELECT cl.nome AS cliente,
+       s.nome AS segmento,
+       COUNT(DISTINCT c.id) AS contratos,
+       COALESCE(SUM(pg.valor), 0) AS ltv
+FROM clientes cl
+JOIN segmentos s   ON s.id = cl.segmento_id
+LEFT JOIN contratos c   ON c.cliente_id = cl.id
+LEFT JOIN faturas f     ON f.contrato_id = c.id
+LEFT JOIN pagamentos pg ON pg.fatura_id = f.id
+WHERE cl.status = 'ATIVO' AND s.ativo = 1
+GROUP BY cl.id
+ORDER BY ltv DESC
+LIMIT 10;
+```
+
+> O SQL de cada relatório também é exibido na tela **Relatórios** do sistema, junto do resultado executado ao vivo no banco.
 
 ## 10. Como reproduzir o banco
 
