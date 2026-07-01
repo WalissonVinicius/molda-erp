@@ -6,6 +6,11 @@
 **Professor:** Willian
 **Sinop/MT — 2026**
 
+> **Links do trabalho**
+> - Aplicação online (Vercel): https://erp.walisson.dev
+> - Repositório (GitHub): https://github.com/WalissonVinicius/molda-erp
+> - Documentação da API: https://erp.walisson.dev/api-docs
+
 ---
 
 ## Sumário
