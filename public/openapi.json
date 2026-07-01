@@ -1,0 +1,73 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Molda ERP — API de Relatórios",
+    "version": "1.0.0",
+    "description": "API REST do ERP Molda. Executa os relatórios de gestão (consultas SQL) diretamente no banco e devolve o resultado em JSON, CSV ou PDF."
+  },
+  "servers": [{ "url": "https://erp.walisson.dev", "description": "Produção" }],
+  "tags": [{ "name": "Relatórios", "description": "Os 5 relatórios de gestão do ERP" }],
+  "paths": {
+    "/api/relatorios/{id}": {
+      "get": {
+        "tags": ["Relatórios"],
+        "summary": "Executa um relatório e retorna o resultado",
+        "description": "Roda o SQL do relatório escolhido e devolve os dados. O formato da resposta é definido pelo parâmetro `format`.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador do relatório.",
+            "schema": {
+              "type": "string",
+              "enum": ["funil", "mrr", "inadimplencia", "extrato", "ltv"]
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "description": "Formato da resposta: JSON (padrão), CSV para Excel, ou PDF formatado.",
+            "schema": {
+              "type": "string",
+              "enum": ["json", "csv", "pdf"],
+              "default": "json"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultado do relatório.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "relatorio": { "type": "string", "example": "MRR — receita recorrente por plano" },
+                    "colunas": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "example": ["plano", "contratos_ativos", "mrr", "arr_projetado"]
+                    },
+                    "linhas": { "type": "array", "items": { "type": "object" } }
+                  }
+                },
+                "example": {
+                  "relatorio": "MRR — receita recorrente por plano",
+                  "colunas": ["plano", "contratos_ativos", "mrr", "arr_projetado"],
+                  "linhas": [
+                    { "plano": "Grow", "contratos_ativos": 2, "mrr": 8100, "arr_projetado": 97200 }
+                  ]
+                }
+              },
+              "text/csv": { "schema": { "type": "string" } },
+              "application/pdf": { "schema": { "type": "string", "format": "binary" } }
+            }
+          },
+          "404": { "description": "Relatório não encontrado." }
+        }
+      }
+    }
+  }
+}

@@ -11,6 +11,7 @@ import {
   Receipt,
   BarChart3,
   BookText,
+  Code2,
 } from "lucide-react";
 import { cn } from "@/components/ui";
 
@@ -68,15 +69,26 @@ export function Sidebar() {
             );
           })}
         </nav>
-        <a
-          href="/documentacao.html"
-          target="_blank"
-          rel="noreferrer"
-          className="mx-3 mb-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted hover:bg-elevated hover:text-foreground"
-        >
-          <BookText className="h-[18px] w-[18px]" />
-          Documentação
-        </a>
+        <div className="space-y-1 px-3 pb-1">
+          <a
+            href="/documentacao.html"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted hover:bg-elevated hover:text-foreground"
+          >
+            <BookText className="h-[18px] w-[18px]" />
+            Documentação
+          </a>
+          <a
+            href="/api.html"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted hover:bg-elevated hover:text-foreground"
+          >
+            <Code2 className="h-[18px] w-[18px]" />
+            API
+          </a>
+        </div>
         <div className="border-t border-border px-5 py-4 text-[11px] text-muted">
           <div className="font-mono uppercase tracking-widest">Sinop · MT</div>
           <div>Marketing &amp; tecnologia</div>
