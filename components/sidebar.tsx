@@ -70,23 +70,26 @@ export function Sidebar() {
           })}
         </nav>
         <div className="space-y-1 px-3 pb-1">
+          <Link
+            href="/api-docs"
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+              isActive("/api-docs")
+                ? "bg-accent-soft text-foreground"
+                : "text-muted hover:bg-elevated hover:text-foreground"
+            )}
+          >
+            <Code2 className="h-[18px] w-[18px]" />
+            API
+          </Link>
           <a
-            href="/documentacao.html"
+            href="/documentacao.pdf"
             target="_blank"
             rel="noreferrer"
             className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted hover:bg-elevated hover:text-foreground"
           >
             <BookText className="h-[18px] w-[18px]" />
             Documentação
-          </a>
-          <a
-            href="/api.html"
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted hover:bg-elevated hover:text-foreground"
-          >
-            <Code2 className="h-[18px] w-[18px]" />
-            API
           </a>
         </div>
         <div className="border-t border-border px-5 py-4 text-[11px] text-muted">
