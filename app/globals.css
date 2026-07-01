@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+/* ----------------------------------------------------------------------------
+   ERP Molda — system design (iOS / big-tech), tema dark com vidro embaçado.
+   Mantém a identidade da Molda: roxo #5B58F6 e o logo.
+---------------------------------------------------------------------------- */
+:root {
+  --background: #08080c;
+  --surface: #101017;
+  --elevated: #17171f;
+  --foreground: #f3f2ec;
+  --muted: #9a99a3;
+  --border: rgba(243, 242, 236, 0.1);
+  --accent: #5b58f6;
+  --accent-hover: #4a47d9;
+  --accent-soft: rgba(91, 88, 246, 0.14);
+  --success: #34c759;
+  --warning: #ff9f0a;
+  --danger: #ff5247;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-elevated: var(--elevated);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-serif: var(--font-inter), -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* brilhos sutis no fundo — dão profundidade para o vidro embaçado desfocar */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(55rem 55rem at 88% -12%, rgba(91, 88, 246, 0.18), transparent 60%),
+    radial-gradient(48rem 48rem at -12% 112%, rgba(123, 108, 246, 0.12), transparent 60%),
+    radial-gradient(42rem 42rem at 45% 40%, rgba(91, 88, 246, 0.05), transparent 70%);
+}
+
+h1, h2, h3, h4 {
+  font-weight: 600;
+  letter-spacing: -0.022em;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--accent) 75%, transparent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* vidro embaçado estilo iOS */
+.glass {
+  background: color-mix(in oklab, var(--surface) 52%, transparent);
+  backdrop-filter: blur(26px) saturate(190%);
+  -webkit-backdrop-filter: blur(26px) saturate(190%);
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--elevated);
+  border: 2px solid var(--background);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.rise {
+  animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* impressão: esconde a navegação e o fundo para gerar PDF limpo */
+@media print {
+  aside,
+  header,
+  .no-print {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+  body::before {
+    display: none;
+  }
+}

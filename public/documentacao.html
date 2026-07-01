@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Documentação — ERP Molda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root { --accent:#5B58F6; --ink:#1b1b22; --muted:#6b6b73; --line:#e7e7ec; --soft:#f6f6f8; }
+  * { box-sizing: border-box; }
+  body { font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--ink); line-height:1.62; margin:0; background:#fff; -webkit-font-smoothing:antialiased; }
+  article { max-width:820px; margin:0 auto; padding:56px 44px 80px; }
+  h1,h2,h3,h4 { line-height:1.25; letter-spacing:-0.02em; }
+  h1 { font-size:34px; font-weight:700; margin:0 0 6px; }
+  h1 + p { color:var(--muted); }
+  h2 { font-size:23px; font-weight:600; margin:42px 0 12px; padding-top:18px; border-top:1px solid var(--line); }
+  h3 { font-size:17px; font-weight:600; margin:24px 0 8px; }
+  p { margin:10px 0; }
+  a { color:var(--accent); text-decoration:none; }
+  strong { font-weight:600; }
+  hr { border:none; border-top:1px solid var(--line); margin:26px 0; }
+  ul,ol { padding-left:22px; }
+  li { margin:5px 0; }
+  blockquote { margin:16px 0; padding:10px 16px; background:var(--soft); border-left:3px solid var(--accent); border-radius:8px; color:#333; }
+  code { font-family:"JetBrains Mono",ui-monospace,monospace; font-size:0.85em; background:var(--soft); padding:1px 5px; border-radius:5px; }
+  pre { background:#0f0f16; color:#e9e9ee; padding:16px; border-radius:12px; overflow:auto; }
+  pre code { background:none; color:inherit; padding:0; font-size:12.5px; line-height:1.55; }
+  table { border-collapse:collapse; width:100%; margin:14px 0; font-size:13.5px; }
+  th,td { border:1px solid var(--line); padding:8px 11px; text-align:left; vertical-align:top; }
+  th { background:var(--soft); font-weight:600; }
+  img { max-width:100%; border:1px solid var(--line); border-radius:12px; margin:12px 0; display:block; }
+  .mermaid { background:var(--soft); border:1px solid var(--line); border-radius:12px; padding:20px; margin:18px 0; text-align:center; }
+  @page { size:A4; margin:16mm; }
+  @media print {
+    article { padding:0; max-width:none; }
+    h2 { break-after:avoid; }
+    table, pre, img, .mermaid, blockquote { break-inside:avoid; }
+    a { color:var(--ink); }
+  }
+</style>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({ startOnLoad:true, theme:"neutral", securityLevel:"loose" });
+</script>
+</head>
+<body>
+<article>
+<h1>ERP Molda — Documentação do Banco de Dados</h1>
+<p><strong>Centro Universitário UNIFASIPE — Análise e Desenvolvimento de Sistemas (3º semestre)</strong>
+<strong>Disciplina:</strong> Banco de Dados — Atividade Avaliativa N3
+<strong>Aluno:</strong> Walisson Vinicius
+<strong>Professor(a):</strong> _______________
+<strong>Sinop/MT — 2026</strong></p>
+<hr>
+<h2>Sumário</h2>
+<ol>
+<li>Apresentação do ERP</li>
+<li>Objetivo e temática</li>
+<li>Arquitetura e tecnologias</li>
+<li>Padrões de nomenclatura</li>
+<li>Modelo de dados (diagrama de entidade-relacionamento)</li>
+<li>Dicionário de dados (explicação de cada tabela)</li>
+<li>Tratamentos de campos</li>
+<li>Triggers (automação das regras de negócio)</li>
+<li>Relatórios SQL de gerenciamento</li>
+<li>Como reproduzir o banco</li>
+<li>Telas do sistema</li>
+<li>Entrega</li>
+</ol>
+<hr>
+<h2>1. Apresentação do ERP</h2>
+<p>A <strong>Molda</strong> é uma agência digital de Sinop/MT que une marketing e tecnologia: cria sites, aplicativos, sistemas e automações sob medida, e opera com <strong>planos mensais recorrentes</strong> (Start, Grow, Exclusive e Enterprise).</p>
+<p>Este ERP foi projetado para controlar a operação real da agência, do primeiro contato com um possível cliente até o recebimento das mensalidades. Ele cobre quatro frentes:</p>
+<ul>
+<li><strong>Prospecção (CRM):</strong> captação e qualificação de leads, com auditoria do site de cada lead.</li>
+<li><strong>Comercial:</strong> propostas e contratos de assinatura.</li>
+<li><strong>Financeiro recorrente:</strong> faturas mensais, pagamentos e inadimplência.</li>
+<li><strong>Operação:</strong> projetos entregues e suas tarefas.</li>
+</ul>
+<h2>2. Objetivo e temática</h2>
+<p>O objetivo do banco é ser a <strong>fonte única de verdade</strong> da gestão da agência, respondendo perguntas como: <em>Qual a receita recorrente mensal (MRR)? Quais clientes estão inadimplentes? De onde vêm os melhores leads? Quais clientes geram mais valor (LTV)?</em></p>
+<p>A temática — <strong>agência digital com receita recorrente</strong> — foi escolhida por ser um cenário rico em relacionamentos (um cliente tem várias propostas; uma proposta vira um contrato; um contrato gera várias faturas; cada fatura recebe pagamentos), o que permite explorar a fundo relacionamentos, tratamentos de campos, triggers e relatórios.</p>
+<h2>3. Arquitetura e tecnologias</h2>
+<table>
+<thead>
+<tr>
+<th>Camada</th>
+<th>Tecnologia</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Banco de dados</td>
+<td><strong>SQLite</strong> (via libSQL/Turso em produção)</td>
+</tr>
+<tr>
+<td>Aplicação</td>
+<td>Next.js 16 (App Router) + TypeScript</td>
+</tr>
+<tr>
+<td>Acesso a dados</td>
+<td><code>@libsql/client</code> executando <strong>SQL puro</strong></td>
+</tr>
+<tr>
+<td>Interface</td>
+<td>Tailwind CSS v4, identidade visual da Molda</td>
+</tr>
+<tr>
+<td>Hospedagem</td>
+<td>Vercel (aplicação) + Turso (banco)</td>
+</tr>
+</tbody></table>
+<p>O banco é definido em SQL puro no arquivo <code>db/schema.sql</code>, com dados de exemplo em <code>db/seed.sql</code>. Os cinco relatórios ficam em <code>db/reports/</code> como arquivos <code>.sql</code> independentes, executados pela aplicação e exibidos ao usuário final.</p>
+<h2>4. Padrões de nomenclatura</h2>
+<p>Para manter o banco organizado e legível, foram adotados os seguintes padrões:</p>
+<ul>
+<li><strong>Tabelas:</strong> nome no plural, em <code>snake_case</code> e em português (ex.: <code>clientes</code>, <code>planos_servicos</code>).</li>
+<li><strong>Chave primária:</strong> sempre a coluna <code>id</code> (<code>INTEGER PRIMARY KEY AUTOINCREMENT</code>).</li>
+<li><strong>Chave estrangeira:</strong> <code>&lt;entidade no singular&gt;_id</code> (ex.: <code>cliente_id</code>, <code>plano_id</code>).</li>
+<li><strong>Datas de controle:</strong> <code>criado_em</code> e, quando aplicável, <code>atualizado_em</code>.</li>
+<li><strong>Situações/estados:</strong> coluna <code>status</code> com valores em maiúsculas, restritos por <code>CHECK</code>.</li>
+<li><strong>Valores monetários:</strong> tipo <code>REAL</code>, em reais.</li>
+</ul>
+<h2>5. Modelo de dados (DER)</h2>
+<p>O banco possui <strong>14 tabelas</strong> organizadas em quatro módulos. O diagrama abaixo mostra as entidades e seus relacionamentos.</p>
+<div class="mermaid">erDiagram
+  segmentos      ||--o{ leads          : classifica
+  segmentos      ||--o{ clientes       : classifica
+  colaboradores  ||--o{ leads          : "é responsável"
+  colaboradores  ||--o{ propostas      : "é autor"
+  colaboradores  ||--o{ tarefas        : "é responsável"
+  leads          ||--o| auditorias_site: "tem"
+  leads          ||--o{ clientes       : "converte em"
+  clientes       ||--o{ propostas      : recebe
+  clientes       ||--o{ contratos      : assina
+  clientes       ||--o{ projetos       : possui
+  planos         ||--o{ propostas      : referencia
+  planos         ||--o{ contratos      : referencia
+  planos         ||--o{ planos_servicos: compoe
+  servicos       ||--o{ planos_servicos: compoe
+  propostas      ||--o| contratos      : "gera"
+  contratos      ||--o{ faturas        : emite
+  contratos      ||--o{ projetos       : vincula
+  faturas        ||--o{ pagamentos     : recebe
+  projetos       ||--o{ tarefas        : contem
+</div>
+<p><strong>Cardinalidades principais:</strong></p>
+<ul>
+<li>Um <strong>segmento</strong> classifica vários <strong>leads</strong> e vários <strong>clientes</strong>.</li>
+<li>Um <strong>lead</strong> tem no máximo uma <strong>auditoria de site</strong> (1:1) e pode se converter em um <strong>cliente</strong>.</li>
+<li>Um <strong>cliente</strong> tem várias <strong>propostas</strong>, vários <strong>contratos</strong> e vários <strong>projetos</strong>.</li>
+<li>Um <strong>plano</strong> participa de várias <strong>propostas/contratos</strong> e agrega vários <strong>serviços</strong> (N:N via <code>planos_servicos</code>).</li>
+<li>Uma <strong>proposta</strong> gera no máximo um <strong>contrato</strong> (1:1 opcional).</li>
+<li>Um <strong>contrato</strong> emite várias <strong>faturas</strong>; cada <strong>fatura</strong> recebe vários <strong>pagamentos</strong>.</li>
+<li>Um <strong>projeto</strong> contém várias <strong>tarefas</strong>.</li>
+</ul>
+<h2>6. Dicionário de dados</h2>
+<h3>Módulo CRM / Prospecção</h3>
+<p><strong><code>segmentos</code></strong> — nichos de mercado atendidos (Odontologia, Construtora, Agro, etc.).</p>
+<table>
+<thead>
+<tr>
+<th>Coluna</th>
+<th>Tipo</th>
+<th>Restrições</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>INTEGER</td>
+<td>PK, AUTOINCREMENT</td>
+</tr>
+<tr>
+<td>nome</td>
+<td>TEXT</td>
+<td>NOT NULL, UNIQUE</td>
+</tr>
+<tr>
+<td>descricao</td>
+<td>TEXT</td>
+<td>—</td>
+</tr>
+<tr>
+<td>ativo</td>
+<td>INTEGER</td>
+<td>NOT NULL, DEFAULT 1, CHECK (0 ou 1)</td>
+</tr>
+<tr>
+<td>criado_em</td>
+<td>TEXT</td>
+<td>NOT NULL, DEFAULT data/hora atual</td>
+</tr>
+</tbody></table>
+<p><strong><code>colaboradores</code></strong> — equipe da agência (sócios e vendedores) que cuida de leads e propostas.</p>
+<table>
+<thead>
+<tr>
+<th>Coluna</th>
+<th>Tipo</th>
+<th>Restrições</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>INTEGER</td>
+<td>PK</td>
+</tr>
+<tr>
+<td>nome</td>
+<td>TEXT</td>
+<td>NOT NULL</td>
+</tr>
+<tr>
+<td>email</td>
+<td>TEXT</td>
+<td>UNIQUE</td>
+</tr>
+<tr>
+<td>papel</td>
+<td>TEXT</td>
+<td>CHECK (SOCIO, DEV, MARKETING, COMERCIAL)</td>
+</tr>
+<tr>
+<td>ativo</td>
+<td>INTEGER</td>
+<td>DEFAULT 1, CHECK (0 ou 1)</td>
+</tr>
+</tbody></table>
+<p><strong><code>leads</code></strong> — empresas prospectadas, com pontuação de oportunidade (<code>score_feiura</code>: quanto pior o site atual, mais quente o lead).</p>
+<table>
+<thead>
+<tr>
+<th>Coluna</th>
+<th>Tipo</th>
+<th>Restrições</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>INTEGER</td>
+<td>PK</td>
+</tr>
+<tr>
+<td>nome</td>
+<td>TEXT</td>
+<td>NOT NULL</td>
+</tr>
+<tr>
+<td>segmento_id</td>
+<td>INTEGER</td>
+<td>FK → segmentos, NOT NULL</td>
+</tr>
+<tr>
+<td>responsavel_id</td>
+<td>INTEGER</td>
+<td>FK → colaboradores (ON DELETE SET NULL)</td>
+</tr>
+<tr>
+<td>score_feiura</td>
+<td>INTEGER</td>
+<td>CHECK (0 a 100)</td>
+</tr>
+<tr>
+<td>temperatura</td>
+<td>TEXT</td>
+<td>CHECK (FRIO, MORNO, QUENTE, SUPER_QUENTE)</td>
+</tr>
+<tr>
+<td>tier</td>
+<td>INTEGER</td>
+<td>CHECK (1 a 3)</td>
+</tr>
+<tr>
+<td>franquia</td>
+<td>INTEGER</td>
+<td>CHECK (0 ou 1)</td>
+</tr>
+<tr>
+<td>status</td>
+<td>TEXT</td>
+<td>CHECK (NOVO, EM_CONTATO, CONVERTIDO, PERDIDO)</td>
+</tr>
+<tr>
+<td>convertido_em</td>
+<td>TEXT</td>
+<td>preenchido por trigger na conversão</td>
+</tr>
+</tbody></table>
+<p><strong><code>auditorias_site</code></strong> — diagnóstico técnico do site do lead. Relação <strong>1:1</strong> com <code>leads</code> (coluna <code>lead_id</code> é <code>UNIQUE</code>).</p>
+<table>
+<thead>
+<tr>
+<th>Coluna</th>
+<th>Tipo</th>
+<th>Restrições</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>INTEGER</td>
+<td>PK</td>
+</tr>
+<tr>
+<td>lead_id</td>
+<td>INTEGER</td>
+<td>FK → leads, NOT NULL, UNIQUE</td>
+</tr>
+<tr>
+<td>https / mobile_ok / tem_whatsapp</td>
+<td>INTEGER</td>
+<td>CHECK (0 ou 1)</td>
+</tr>
+<tr>
+<td>tempo_carga_ms</td>
+<td>INTEGER</td>
+<td>CHECK (≥ 0)</td>
+</tr>
+</tbody></table>
+<p><strong><code>clientes</code></strong> — leads convertidos (ou entradas diretas) que passam a ser atendidos.</p>
+<table>
+<thead>
+<tr>
+<th>Coluna</th>
+<th>Tipo</th>
+<th>Restrições</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>INTEGER</td>
+<td>PK</td>
+</tr>
+<tr>
+<td>nome</td>
+<td>TEXT</td>
+<td>NOT NULL</td>
+</tr>
+<tr>
+<td>segmento_id</td>
+<td>INTEGER</td>
+<td>FK → segmentos, NOT NULL</td>
+</tr>
+<tr>
+<td>lead_origem_id</td>
+<td>INTEGER</td>
+<td>FK → leads (ON DELETE SET NULL)</td>
+</tr>
+<tr>
+<td>cnpj / email</td>
+<td>TEXT</td>
+<td>UNIQUE</td>
+</tr>
+<tr>
+<td>uf</td>
+<td>TEXT</td>
+<td>CHECK (2 caracteres)</td>
+</tr>
+<tr>
+<td>status</td>
+<td>TEXT</td>
+<td>CHECK (PROSPECCAO, ATIVO, INATIVO)</td>
+</tr>
+</tbody></table>
+<h3>Módulo Catálogo</h3>
+<p><strong><code>planos</code></strong> — planos mensais recorrentes (Start, Grow, Exclusive, Enterprise).</p>
+<table>
+<thead>
+<tr>
+<th>Coluna</th>
+<th>Tipo</th>
+<th>Restrições</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>INTEGER</td>
+<td>PK</td>
+</tr>
+<tr>
+<td>nome</td>
+<td>TEXT</td>
+<td>NOT NULL, UNIQUE</td>
+</tr>
+<tr>
+<td>preco_mensal</td>
+<td>REAL</td>
+<td>NOT NULL, CHECK (≥ 0)</td>
+</tr>
+<tr>
+<td>verba_minima_midia</td>
+<td>REAL</td>
+<td>DEFAULT 0, CHECK (≥ 0)</td>
+</tr>
+</tbody></table>
+<p><strong><code>servicos</code></strong> — itens que compõem os planos (site, artes, vídeos, tráfego, IA, etc.).</p>
+<p><strong><code>planos_servicos</code></strong> — tabela associativa <strong>N:N</strong> entre planos e serviços, com a <code>quantidade</code> incluída em cada plano. A chave primária é composta por (<code>plano_id</code>, <code>servico_id</code>).</p>
+<h3>Módulo Comercial / Financeiro</h3>
+<p><strong><code>propostas</code></strong> — propostas comerciais enviadas aos clientes.</p>
+<table>
+<thead>
+<tr>
+<th>Coluna</th>
+<th>Tipo</th>
+<th>Restrições</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>INTEGER</td>
+<td>PK</td>
+</tr>
+<tr>
+<td>cliente_id</td>
+<td>INTEGER</td>
+<td>FK → clientes, NOT NULL</td>
+</tr>
+<tr>
+<td>plano_id</td>
+<td>INTEGER</td>
+<td>FK → planos, NOT NULL</td>
+</tr>
+<tr>
+<td>autor_id</td>
+<td>INTEGER</td>
+<td>FK → colaboradores</td>
+</tr>
+<tr>
+<td>valor</td>
+<td>REAL</td>
+<td>NOT NULL, CHECK (≥ 0)</td>
+</tr>
+<tr>
+<td>status</td>
+<td>TEXT</td>
+<td>CHECK (RASCUNHO, ENVIADA, ACEITA, RECUSADA)</td>
+</tr>
+</tbody></table>
+<p><strong><code>contratos</code></strong> — assinaturas recorrentes. A coluna <code>valor_anual</code> é <strong>gerada</strong> automaticamente.</p>
+<table>
+<thead>
+<tr>
+<th>Coluna</th>
+<th>Tipo</th>
+<th>Restrições</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>INTEGER</td>
+<td>PK</td>
+</tr>
+<tr>
+<td>proposta_id</td>
+<td>INTEGER</td>
+<td>FK → propostas, UNIQUE</td>
+</tr>
+<tr>
+<td>cliente_id</td>
+<td>INTEGER</td>
+<td>FK → clientes, NOT NULL</td>
+</tr>
+<tr>
+<td>plano_id</td>
+<td>INTEGER</td>
+<td>FK → planos, NOT NULL</td>
+</tr>
+<tr>
+<td>valor_mensal</td>
+<td>REAL</td>
+<td>NOT NULL, CHECK (≥ 0)</td>
+</tr>
+<tr>
+<td>valor_anual</td>
+<td>REAL</td>
+<td><strong>GERADA</strong>: valor_mensal × 12 (STORED)</td>
+</tr>
+<tr>
+<td>data_assinatura</td>
+<td>TEXT</td>
+<td>DEFAULT data atual</td>
+</tr>
+<tr>
+<td>status</td>
+<td>TEXT</td>
+<td>CHECK (ATIVO, PAUSADO, CANCELADO)</td>
+</tr>
+</tbody></table>
+<p><strong><code>faturas</code></strong> — mensalidades emitidas por contrato. Há uma fatura por competência (<code>UNIQUE</code> em contrato + competência).</p>
+<table>
+<thead>
+<tr>
+<th>Coluna</th>
+<th>Tipo</th>
+<th>Restrições</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>INTEGER</td>
+<td>PK</td>
+</tr>
+<tr>
+<td>contrato_id</td>
+<td>INTEGER</td>
+<td>FK → contratos, NOT NULL</td>
+</tr>
+<tr>
+<td>competencia</td>
+<td>TEXT</td>
+<td>NOT NULL (formato AAAA-MM)</td>
+</tr>
+<tr>
+<td>valor</td>
+<td>REAL</td>
+<td>NOT NULL, CHECK (≥ 0)</td>
+</tr>
+<tr>
+<td>vencimento</td>
+<td>TEXT</td>
+<td>NOT NULL</td>
+</tr>
+<tr>
+<td>status</td>
+<td>TEXT</td>
+<td>CHECK (ABERTA, PAGA, ATRASADA, CANCELADA)</td>
+</tr>
+</tbody></table>
+<p><strong><code>pagamentos</code></strong> — pagamentos recebidos por fatura (admite pagamento parcial).</p>
+<table>
+<thead>
+<tr>
+<th>Coluna</th>
+<th>Tipo</th>
+<th>Restrições</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>INTEGER</td>
+<td>PK</td>
+</tr>
+<tr>
+<td>fatura_id</td>
+<td>INTEGER</td>
+<td>FK → faturas, NOT NULL</td>
+</tr>
+<tr>
+<td>valor</td>
+<td>REAL</td>
+<td>NOT NULL, CHECK (&gt; 0)</td>
+</tr>
+<tr>
+<td>metodo</td>
+<td>TEXT</td>
+<td>CHECK (PIX, CARTAO, BOLETO, DINHEIRO)</td>
+</tr>
+</tbody></table>
+<h3>Módulo Operação</h3>
+<p><strong><code>projetos</code></strong> — entregas executadas para o cliente (site, landing, app, sistema, automação, marketing).</p>
+<p><strong><code>tarefas</code></strong> — tarefas que compõem cada projeto, com responsável e horas trabalhadas.</p>
+<h2>7. Tratamentos de campos</h2>
+<p>O banco aplica diversos tratamentos para garantir integridade e qualidade dos dados:</p>
+<ul>
+<li><strong>Integridade referencial:</strong> <code>PRAGMA foreign_keys = ON</code> e chaves estrangeiras com a ação adequada — <code>RESTRICT</code> no catálogo (não deixa apagar um plano em uso), <code>CASCADE</code> em dependentes (apagar um projeto apaga suas tarefas) e <code>SET NULL</code> em vínculos opcionais (a origem de um cliente).</li>
+<li><strong>Obrigatoriedade e unicidade:</strong> <code>NOT NULL</code> nos campos essenciais e <code>UNIQUE</code> em e-mails, CNPJ, nome de plano/segmento e na relação 1:1 de auditoria.</li>
+<li><strong>Domínios controlados (<code>CHECK</code>):</strong> todos os campos de <code>status</code> aceitam apenas valores válidos; faixas numéricas são validadas (<code>score_feiura</code> entre 0 e 100, <code>tier</code> entre 1 e 3, valores monetários ≥ 0; <code>uf</code> com 2 caracteres).</li>
+<li><strong>Valores padrão (<code>DEFAULT</code>):</strong> <code>criado_em</code> recebe a data/hora atual; campos booleanos assumem 0/1; <code>status</code> recebe o estado inicial.</li>
+<li><strong>Coluna gerada:</strong> <code>contratos.valor_anual</code> é calculada pelo próprio banco como <code>valor_mensal * 12</code> (<code>GENERATED ALWAYS AS ... STORED</code>), evitando redundância e inconsistência.</li>
+<li><strong>Índices:</strong> criados nas chaves estrangeiras e nas colunas mais filtradas pelos relatórios (<code>faturas.status</code>, <code>faturas.competencia</code>, <code>leads.temperatura</code>), melhorando o desempenho das consultas.</li>
+</ul>
+<h2>8. Triggers</h2>
+<p>Sete triggers automatizam as regras de negócio:</p>
+<ol>
+<li><strong><code>trg_proposta_aceita_gera_contrato</code></strong> — quando uma proposta muda para <code>ACEITA</code>, cria automaticamente o contrato correspondente.</li>
+<li><strong><code>trg_contrato_novo_gera_fatura</code></strong> — ao inserir um contrato ativo, gera a primeira fatura (na competência da assinatura, com vencimento em 7 dias).</li>
+<li><strong><code>trg_pagamento_quita_fatura</code></strong> — ao registrar um pagamento, <strong>soma</strong> (<code>SUM</code>) todos os pagamentos da fatura e, se atingirem o valor, marca a fatura como <code>PAGA</code>.</li>
+<li><strong><code>trg_contrato_cancelado_cancela_faturas</code></strong> — ao cancelar um contrato, cancela as faturas que ainda estavam em aberto.</li>
+<li><strong><code>trg_lead_convertido</code></strong> — quando um lead muda para <code>CONVERTIDO</code>, carimba a data/hora da conversão.</li>
+<li><strong><code>trg_proposta_valida_piso</code></strong> — impede (<code>RAISE(ABORT)</code>) o cadastro de uma proposta com valor abaixo do preço mínimo do plano.</li>
+<li><strong><code>trg_contratos_touch</code></strong> — mantém o campo <code>atualizado_em</code> do contrato sempre que ele é alterado.</li>
+</ol>
+<blockquote>
+<p>Os triggers 1 e 2 formam uma <strong>cadeia</strong>: aceitar uma proposta cria o contrato, que por sua vez gera a primeira fatura — tudo em uma única ação do usuário.</p>
+</blockquote>
+<h2>9. Relatórios SQL de gerenciamento</h2>
+<p>São cinco relatórios, cada um voltado a uma decisão de gestão. Juntos, eles aplicam todos os comandos exigidos: <code>WHERE</code>, <code>AND</code>, <code>OR</code>, <code>JOIN</code>, <code>UNION ALL</code>, <code>COUNT</code>, <code>SUM</code> (além dos <code>TRIGGERS</code> acima).</p>
+<h3>Relatório 1 — Funil de prospecção por segmento</h3>
+<p><em>Comandos: JOIN, WHERE, AND, COUNT.</em> Mostra, por nicho, quantos leads existem, quantos estão quentes e o score médio de oportunidade. Ajuda a decidir onde concentrar a prospecção. (<code>db/reports/01_funil_prospeccao.sql</code>)</p>
+<h3>Relatório 2 — MRR (receita recorrente mensal) por plano</h3>
+<p><em>Comandos: JOIN, WHERE, SUM, COUNT.</em> Soma o valor mensal dos contratos ativos por plano e projeta a receita anual (ARR). É o principal indicador de saúde do negócio. (<code>db/reports/02_mrr_por_plano.sql</code>)</p>
+<h3>Relatório 3 — Inadimplência</h3>
+<p><em>Comandos: JOIN, WHERE, AND, OR, COUNT, SUM.</em> Lista os clientes com faturas vencidas em aberto, com a quantidade e o total devido. Aciona a régua de cobrança. (<code>db/reports/03_inadimplencia.sql</code>)</p>
+<h3>Relatório 4 — Extrato de caixa (realizado + previsto)</h3>
+<p><em>Comandos: UNION ALL, JOIN, WHERE.</em> Une, em um único extrato ordenado por data, o que já foi recebido (pagamentos) com o que ainda está previsto (faturas em aberto). É o caso clássico de <code>UNION ALL</code>, pois combina duas origens com a mesma estrutura. (<code>db/reports/04_extrato_caixa.sql</code>)</p>
+<h3>Relatório 5 — Ranking de clientes por LTV</h3>
+<p><em>Comandos: JOIN (INNER + LEFT), WHERE, AND, COUNT, SUM.</em> Soma tudo o que cada cliente ativo já pagou (seu <em>lifetime value</em>) e mostra o número de contratos. O <code>LEFT JOIN</code> garante que clientes ainda sem pagamento também apareçam. (<code>db/reports/05_ltv_clientes.sql</code>)</p>
+<blockquote>
+<p>O código SQL completo de cada relatório está nos arquivos indicados e também é exibido na tela <strong>Relatórios</strong> do sistema, junto do resultado executado ao vivo.</p>
+</blockquote>
+<h2>10. Como reproduzir o banco</h2>
+<ol>
+<li>Criar o banco a partir do esquema: executar <code>db/schema.sql</code> em um banco SQLite (cria tabelas, índices e triggers).</li>
+<li>Popular com dados de exemplo: executar <code>db/seed.sql</code>.</li>
+<li>Rodar qualquer um dos relatórios em <code>db/reports/</code>.</li>
+</ol>
+<p>No projeto, o comando <code>npm run db:build</code> automatiza os passos 1 e 2, gerando o arquivo <code>db/molda.db</code>.</p>
+<h2>11. Telas do sistema</h2>
+<p><strong>Figura 1 — Visão geral (dashboard):</strong> KPIs de MRR, ARR, clientes ativos e inadimplência, com gráficos de receita por mês, MRR por plano e funil por segmento.</p>
+<p><img src="img/figura1-dashboard.png" alt="Dashboard do ERP Molda"></p>
+<p><strong>Figura 2 — Relatórios:</strong> os cinco relatórios com o SQL e o resultado executado ao vivo no banco.</p>
+<p><img src="img/figura2-relatorios.png" alt="Tela de relatórios"></p>
+<p><strong>Figura 3 — Faturas:</strong> ao registrar o pagamento, a fatura é quitada automaticamente pela trigger.</p>
+<p><img src="img/figura3-faturas.png" alt="Tela de faturas"></p>
+<h2>12. Entrega</h2>
+<ul>
+<li><strong>Repositório (GitHub):</strong> _______________</li>
+<li><strong>Aplicação (Vercel):</strong> _______________</li>
+<li><strong>Composição da nota:</strong> Banco de Dados (6,0) + Documentação (4,0).</li>
+</ul>
+
+</article>
+</body>
+</html>
