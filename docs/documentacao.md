@@ -46,13 +46,13 @@ A temática — **agência digital com receita recorrente** — foi escolhida po
 
 | Camada | Tecnologia |
 |---|---|
-| Banco de dados | **SQLite** (via libSQL/Turso em produção) |
+| Banco de dados | **SQLite** |
 | Aplicação | Next.js 16 (App Router) + TypeScript |
 | Acesso a dados | `@libsql/client` executando **SQL puro** |
 | Interface | Tailwind CSS v4, identidade visual da Molda |
-| Hospedagem | Vercel (aplicação) + Turso (banco) |
+| Hospedagem | Vercel — o arquivo do banco SQLite acompanha a aplicação |
 
-O banco é definido em SQL puro no arquivo `db/schema.sql`, com dados de exemplo em `db/seed.sql`. Os cinco relatórios ficam em `db/reports/` como arquivos `.sql` independentes, executados pela aplicação e exibidos ao usuário final.
+O banco é definido em SQL puro no arquivo `db/schema.sql`, com dados de exemplo em `db/seed.sql`. Os cinco relatórios ficam em `db/reports/` como arquivos `.sql` independentes, executados pela aplicação e exibidos ao usuário final. Como o SQLite é um único arquivo, ele é distribuído junto do projeto — sem servidor de banco separado.
 
 ## 4. Padrões de nomenclatura
 
@@ -299,6 +299,6 @@ No projeto, o comando `npm run db:build` automatiza os passos 1 e 2, gerando o a
 
 ## 12. Entrega
 
-- **Repositório (GitHub):** _______________
-- **Aplicação (Vercel):** _______________
+- **Repositório (GitHub):** https://github.com/WalissonVinicius/molda-erp
+- **Aplicação (Vercel):** https://erp.walisson.dev
 - **Composição da nota:** Banco de Dados (6,0) + Documentação (4,0).

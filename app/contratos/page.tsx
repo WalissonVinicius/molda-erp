@@ -1,4 +1,5 @@
 import { PageHeader, DataTable, Badge, brl, type Coluna } from "@/components/ui";
+import { dataBR } from "@/lib/format";
 import { listContratos } from "@/lib/entities";
 import { cancelarContrato } from "@/app/actions";
 import { AcaoBotao } from "@/components/acao-botao";
@@ -32,7 +33,7 @@ export default async function ContratosPage({
       mono: true,
       render: (v) => brl(Number(v)),
     },
-    { key: "data_assinatura", label: "Assinatura", mono: true },
+    { key: "data_assinatura", label: "Assinatura", mono: true, render: (v) => dataBR(v) },
     { key: "status", label: "Status", render: (v) => <Badge>{String(v)}</Badge> },
     {
       key: "acao",

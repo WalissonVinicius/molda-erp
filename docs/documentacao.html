@@ -92,7 +92,7 @@
 </thead>
 <tbody><tr>
 <td>Banco de dados</td>
-<td><strong>SQLite</strong> (via libSQL/Turso em produção)</td>
+<td><strong>SQLite</strong></td>
 </tr>
 <tr>
 <td>Aplicação</td>
@@ -108,10 +108,10 @@
 </tr>
 <tr>
 <td>Hospedagem</td>
-<td>Vercel (aplicação) + Turso (banco)</td>
+<td>Vercel — o arquivo do banco SQLite acompanha a aplicação</td>
 </tr>
 </tbody></table>
-<p>O banco é definido em SQL puro no arquivo <code>db/schema.sql</code>, com dados de exemplo em <code>db/seed.sql</code>. Os cinco relatórios ficam em <code>db/reports/</code> como arquivos <code>.sql</code> independentes, executados pela aplicação e exibidos ao usuário final.</p>
+<p>O banco é definido em SQL puro no arquivo <code>db/schema.sql</code>, com dados de exemplo em <code>db/seed.sql</code>. Os cinco relatórios ficam em <code>db/reports/</code> como arquivos <code>.sql</code> independentes, executados pela aplicação e exibidos ao usuário final. Como o SQLite é um único arquivo, ele é distribuído junto do projeto — sem servidor de banco separado.</p>
 <h2>4. Padrões de nomenclatura</h2>
 <p>Para manter o banco organizado e legível, foram adotados os seguintes padrões:</p>
 <ul>
@@ -614,8 +614,8 @@
 <p><img src="img/figura3-faturas.png" alt="Tela de faturas"></p>
 <h2>12. Entrega</h2>
 <ul>
-<li><strong>Repositório (GitHub):</strong> _______________</li>
-<li><strong>Aplicação (Vercel):</strong> _______________</li>
+<li><strong>Repositório (GitHub):</strong> <a href="https://github.com/WalissonVinicius/molda-erp">https://github.com/WalissonVinicius/molda-erp</a></li>
+<li><strong>Aplicação (Vercel):</strong> <a href="https://erp.walisson.dev">https://erp.walisson.dev</a></li>
 <li><strong>Composição da nota:</strong> Banco de Dados (6,0) + Documentação (4,0).</li>
 </ul>
 

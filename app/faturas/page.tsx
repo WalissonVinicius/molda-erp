@@ -1,4 +1,5 @@
 import { PageHeader, DataTable, Badge, brl, type Coluna } from "@/components/ui";
+import { dataBR } from "@/lib/format";
 import { listFaturas } from "@/lib/entities";
 import { registrarPagamento } from "@/app/actions";
 import { AcaoBotao } from "@/components/acao-botao";
@@ -25,7 +26,7 @@ export default async function FaturasPage({
       mono: true,
       render: (v) => brl(Number(v)),
     },
-    { key: "vencimento", label: "Vencimento", mono: true },
+    { key: "vencimento", label: "Vencimento", mono: true, render: (v) => dataBR(v) },
     { key: "status", label: "Status", render: (v) => <Badge>{String(v)}</Badge> },
     {
       key: "acao",
